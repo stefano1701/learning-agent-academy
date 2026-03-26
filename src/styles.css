@@ -1402,17 +1402,27 @@ h2 {
   z-index: 7;
   display: none;
   gap: 12px;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .touch-controls button {
-  min-width: 110px;
-  min-height: 58px;
+  min-width: 92px;
+  min-height: 92px;
   border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 18px;
-  padding: 14px 18px;
+  border-radius: 24px;
+  padding: 0;
   background: rgba(6, 18, 29, 0.82);
   color: var(--text-main);
   touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  display: grid;
+  place-items: center;
+  font-size: clamp(2rem, 4vw, 2.6rem);
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: 0 18px 30px rgba(0, 0, 0, 0.24);
 }
 
 html.touch-device .touch-controls {

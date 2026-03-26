@@ -1570,6 +1570,7 @@
     guideBreakupHideTimer: 0,
     launchOptions: {},
     lastRunConfig: null,
+    lastVirtualJumpAt: 0,
   };
 
   let progress = loadProgress();
@@ -1685,6 +1686,41 @@
 
   function setGuideVisible(visible) {
     refs.guideWidget.classList.toggle("is-hidden", !visible);
+  }
+
+  function createVirtualKeyEvent(key) {
+    return {
+      key,
+      preventDefault() {},
+    };
+  }
+
+  function pressVirtualArrow(key) {
+    handleKeyDown(createVirtualKeyEvent(key));
+  }
+
+  function releaseVirtualArrow(key) {
+    handleKeyUp(createVirtualKeyEvent(key));
+  }
+
+  function handleUpArrowButtonPress(event) {
+    event.preventDefault();
+    const now = performance.now();
+    if (now - state.lastVirtualJumpAt < 360) {
+      return;
+    }
+    state.lastVirtualJumpAt = now;
+    pressVirtualArrow("ArrowUp");
+  }
+
+  function handleDownArrowButtonPress(event) {
+    event.preventDefault();
+    pressVirtualArrow("ArrowDown");
+  }
+
+  function handleDownArrowButtonRelease(event) {
+    event.preventDefault();
+    releaseVirtualArrow("ArrowDown");
   }
 
   function clearGuideBreakupSequence(resetPortrait = true) {
@@ -4549,15 +4585,16 @@
       }
     });
 
-    refs.jumpButton.addEventListener("pointerdown", queueJump);
-    refs.duckButton.addEventListener("pointerdown", () => setDuckHeld(true));
-    refs.duckButton.addEventListener("pointerup", () => setDuckHeld(false));
-    refs.duckButton.addEventListener("pointercancel", () => setDuckHeld(false));
-    refs.duckButton.addEventListener("pointerleave", () => setDuckHeld(false));
-    refs.jumpButton.addEventListener("touchstart", queueJump, { passive: true });
-    refs.duckButton.addEventListener("touchstart", () => setDuckHeld(true), { passive: true });
-    refs.duckButton.addEventListener("touchend", () => setDuckHeld(false), { passive: true });
-    refs.duckButton.addEventListener("touchcancel", () => setDuckHeld(false), { passive: true });
+    refs.jumpButton.addEventListener("pointerdown", handleUpArrowButtonPress);
+    refs.jumpButton.addEventListener("click", handleUpArrowButtonPress);
+    refs.jumpButton.addEventListener("touchstart", handleUpArrowButtonPress, { passive: false });
+    refs.duckButton.addEventListener("pointerdown", handleDownArrowButtonPress);
+    refs.duckButton.addEventListener("pointerup", handleDownArrowButtonRelease);
+    refs.duckButton.addEventListener("pointercancel", handleDownArrowButtonRelease);
+    refs.duckButton.addEventListener("pointerleave", handleDownArrowButtonRelease);
+    refs.duckButton.addEventListener("touchstart", handleDownArrowButtonPress, { passive: false });
+    refs.duckButton.addEventListener("touchend", handleDownArrowButtonRelease, { passive: false });
+    refs.duckButton.addEventListener("touchcancel", handleDownArrowButtonRelease, { passive: false });
   }
 
   function parseLaunchOptions() {
