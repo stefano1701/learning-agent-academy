@@ -1574,6 +1574,21 @@
 
   let progress = loadProgress();
 
+  function getViewportSize() {
+    const viewport = window.visualViewport;
+    if (viewport) {
+      return {
+        width: Math.max(320, Math.round(viewport.width)),
+        height: Math.max(320, Math.round(viewport.height)),
+      };
+    }
+
+    return {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    };
+  }
+
   function createDefaultProgress() {
     return {
       totalCorrect: 0,
@@ -1650,7 +1665,11 @@
   }
 
   function isTouchDevice() {
-    return window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+    return (
+      navigator.maxTouchPoints > 0 ||
+      "ontouchstart" in window ||
+      window.matchMedia("(hover: none) and (pointer: coarse)").matches
+    );
   }
 
   function showToast(message) {
@@ -2310,8 +2329,10 @@
 
   function resizeCanvas() {
     const dpr = window.devicePixelRatio || 1;
-    state.viewWidth = window.innerWidth;
-    state.viewHeight = window.innerHeight;
+    const viewport = getViewportSize();
+    document.documentElement.classList.toggle("touch-device", isTouchDevice());
+    state.viewWidth = viewport.width;
+    state.viewHeight = viewport.height;
     refs.canvas.width = Math.floor(state.viewWidth * dpr);
     refs.canvas.height = Math.floor(state.viewHeight * dpr);
     refs.canvas.style.width = `${state.viewWidth}px`;
@@ -4482,6 +4503,8 @@
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
     window.addEventListener("resize", resizeCanvas);
+    window.addEventListener("orientationchange", resizeCanvas);
+    window.visualViewport?.addEventListener("resize", resizeCanvas);
     window.addEventListener("blur", () => {
       state.keyDuckHeld = false;
       state.touchDuckHeld = false;
@@ -4531,6 +4554,10 @@
     refs.duckButton.addEventListener("pointerup", () => setDuckHeld(false));
     refs.duckButton.addEventListener("pointercancel", () => setDuckHeld(false));
     refs.duckButton.addEventListener("pointerleave", () => setDuckHeld(false));
+    refs.jumpButton.addEventListener("touchstart", queueJump, { passive: true });
+    refs.duckButton.addEventListener("touchstart", () => setDuckHeld(true), { passive: true });
+    refs.duckButton.addEventListener("touchend", () => setDuckHeld(false), { passive: true });
+    refs.duckButton.addEventListener("touchcancel", () => setDuckHeld(false), { passive: true });
   }
 
   function parseLaunchOptions() {
