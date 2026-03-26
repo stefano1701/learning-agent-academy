@@ -1371,11 +1371,9 @@
   const CHARACTER_PROFILES = {
     nathan: {
       id: "nathan",
-      name: "Nathan",
-      age: 10,
-      birthplace: "England",
+      name: "Agent N",
       likesLabel: "Favorite Things",
-      likes: "his brother Matthew and gaming",
+      likes: "his brother Agent M and gaming",
       dislikes: "veggies",
       portraitBackdropTop: "#23324b",
       portraitBackdropBottom: "#101925",
@@ -1400,11 +1398,9 @@
     },
     matthew: {
       id: "matthew",
-      name: "Matthew",
-      age: 7,
-      birthplace: "England",
+      name: "Agent M",
       likesLabel: "Likes",
-      likes: "Subway Surfers and his bro Nathan",
+      likes: "Subway Surfers and his bro Agent N",
       dislikes: "veggies",
       portraitBackdropTop: "#284036",
       portraitBackdropBottom: "#101a18",
@@ -1429,11 +1425,9 @@
     },
     sarah: {
       id: "sarah",
-      name: "Sarah",
-      age: 44,
-      birthplace: "England",
+      name: "Agent Mum",
       likesLabel: "Likes",
-      likes: "sunshine, happy moods and her husband Mike",
+      likes: "sunshine, happy moods and her husband Agent Dad",
       dislikes: "arguing and bad moods",
       portraitBackdropTop: "#38435b",
       portraitBackdropBottom: "#151c28",
@@ -1461,11 +1455,9 @@
     },
     mike: {
       id: "mike",
-      name: "Mike",
-      age: 44,
-      birthplace: "Romania",
+      name: "Agent Dad",
       likesLabel: "Likes",
-      likes: "lego, computers and his wife Sarah",
+      likes: "lego, computers and his wife Agent Mum",
       dislikes: "polluters",
       portraitBackdropTop: "#3a352f",
       portraitBackdropBottom: "#171513",
@@ -2043,8 +2035,6 @@
         <div class="character-copy">
           <h4>${character.name}</h4>
           <p><strong>Name:</strong> ${character.name}</p>
-          <p><strong>Age:</strong> ${character.age}</p>
-          <p><strong>Place Of Birth:</strong> ${character.birthplace}</p>
           <p><strong>${character.likesLabel}:</strong> ${character.likes}</p>
           <p><strong>Dislikes:</strong> ${character.dislikes}</p>
         </div>

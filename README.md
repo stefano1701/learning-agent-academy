@@ -70,9 +70,11 @@ On touch devices there are `Jump` and `Duck` buttons.
 - slower pacing and fewer, easier laser obstacles
 - a clear final approach into each lesson door, with no lasers right beside it
 - traps can still sit close to the vault door, with only a very small final gap
-- two playable child agents in suits:
-  - Nathan
-  - Matthew
+- four selectable agents in suits:
+  - Agent N
+  - Agent M
+  - Agent Mum
+  - Agent Dad
 - three-life mission structure with ninja capture after the third obstacle hit
 - multiple debrief endings, including different ninja-capture outcomes
 - door-unlock lesson questions for:
