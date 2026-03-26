@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Learning Agent Academy</title>
+    <link rel="stylesheet" href="./src/styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <canvas id="game-canvas" width="1280" height="720" aria-label="Learning Agent Academy"></canvas>
+
+      <header id="hud" class="hud hidden" aria-live="polite">
+        <div class="hud-group">
+          <span class="hud-pill"><strong>Location</strong> <span id="hud-location">Black Site Corridor</span></span>
+          <span class="hud-pill"><strong>Lesson</strong> <span id="hud-lesson">Spelling · Year 3</span></span>
+          <span class="hud-pill"><strong>Distance</strong> <span id="hud-distance">0m</span></span>
+        </div>
+        <div class="hud-group">
+          <span class="hud-pill"><strong>Lives</strong> <span id="hud-lives">3</span></span>
+          <span class="hud-pill"><strong>Locks Opened</strong> <span id="hud-locks">0</span></span>
+        </div>
+      </header>
+
+      <button id="mute-button" class="mute-button" type="button" aria-pressed="false">Voice: On</button>
+
+      <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+      <aside id="guide-widget" class="guide-widget" aria-live="polite">
+        <div class="guide-portrait-shell">
+          <canvas id="guide-canvas" class="guide-canvas" width="220" height="240" aria-hidden="true"></canvas>
+        </div>
+        <div class="guide-copy">
+          <p class="eyebrow">Mission Handler</p>
+          <h3 id="guide-name">Mission Handler</h3>
+          <p id="guide-text" class="guide-text"></p>
+        </div>
+      </aside>
+
+      <main id="overlay-root" class="overlay-root">
+        <section id="menu-screen" class="screen active">
+          <div class="hero-copy">
+            <p class="eyebrow">Single-world spy mission runner for primary school lessons</p>
+            <h1>Learning Agent Academy</h1>
+            <p class="lead">
+              Slip through the laser corridor, unlock doors with lesson answers, and keep the mission alive.
+              Choose the subject and year group or adult mode first, then start the infiltration run.
+            </p>
+
+            <section class="mission-setup" aria-labelledby="mission-setup-title">
+              <div class="screen-head compact">
+                <div>
+                  <p class="eyebrow">Mission Setup</p>
+                  <h2 id="mission-setup-title">Choose Lesson And Level</h2>
+                </div>
+              </div>
+
+              <div class="setup-group">
+                <p class="setup-label">Lesson</p>
+                <div id="subject-selector" class="selector-grid"></div>
+              </div>
+
+              <div class="setup-group">
+                <p class="setup-label">Year Group / Adult Mode</p>
+                <div id="year-selector" class="selector-grid year-selector"></div>
+              </div>
+
+              <p id="mission-summary" class="mission-summary">Mission loaded: Spelling · Year 3</p>
+            </section>
+
+            <div class="cta-row">
+              <button id="play-main-button" class="action action-primary" type="button">Start Main Mission</button>
+              <button id="play-practice-button" class="action" type="button">Start Focus Practice</button>
+            </div>
+          </div>
+
+          <aside class="menu-panel">
+            <h2>Briefing</h2>
+            <ul class="feature-list">
+              <li>One spy corridor world with slower pacing and easier laser obstacles</li>
+              <li>Choose from Nathan, Matthew, Sarah, and Mike before the mission starts</li>
+              <li>Three lives instead of a chaser</li>
+              <li>Learning doors with keypads, wires, keycards, and power panels for spelling, grammar, punctuation, maths, science, history, geography, DT, computing, Spanish, and French, with Year 1 to Year 13 plus Adult Mode</li>
+              <li>Immediate spoken word or prompt when the lock screen opens</li>
+              <li>Last-life alarm failure with red flashing alert</li>
+            </ul>
+
+            <div class="stat-grid">
+              <div class="stat-card">
+                <span>Total Correct</span>
+                <strong id="menu-total-correct">0</strong>
+              </div>
+              <div class="stat-card">
+                <span>Best Distance</span>
+                <strong id="menu-best-distance">0m</strong>
+              </div>
+              <div class="stat-card">
+                <span>Missions Run</span>
+                <strong id="menu-total-runs">0</strong>
+              </div>
+              <div class="stat-card">
+                <span>Current Focus</span>
+                <strong id="menu-current-mission">Spelling · Year 3</strong>
+              </div>
+            </div>
+
+            <section class="agent-section" aria-labelledby="agent-selector-title">
+              <div class="screen-head compact">
+                <div>
+                  <p class="eyebrow">Agents</p>
+                  <h3 id="agent-selector-title">Choose Character</h3>
+                </div>
+              </div>
+              <div id="character-selector" class="character-grid"></div>
+            </section>
+          </aside>
+        </section>
+
+        <section id="challenge-screen" class="screen challenge-screen">
+          <form id="challenge-form" class="challenge-card">
+            <p id="challenge-mode" class="eyebrow">Security Lock</p>
+            <div class="challenge-topline">
+              <div class="lock-visual" aria-hidden="true">
+                <span class="lock-light"></span>
+                <span class="lock-light"></span>
+                <span class="lock-light"></span>
+              </div>
+              <div id="challenge-face" class="challenge-face" aria-hidden="true">:|</div>
+            </div>
+            <p id="challenge-alert" class="challenge-alert" hidden>Alarm triggered</p>
+            <h2 id="challenge-title">Unlock the security door</h2>
+            <div id="challenge-door" class="security-door" aria-hidden="true" data-door-state="sealed">
+              <div class="security-door-frame">
+                <div class="vault-door-panel">
+                  <span class="vault-rivet vault-rivet-1"></span>
+                  <span class="vault-rivet vault-rivet-2"></span>
+                  <span class="vault-rivet vault-rivet-3"></span>
+                  <span class="vault-rivet vault-rivet-4"></span>
+                  <span class="vault-rivet vault-rivet-5"></span>
+                  <span class="vault-rivet vault-rivet-6"></span>
+                  <span class="vault-rivet vault-rivet-7"></span>
+                  <span class="vault-rivet vault-rivet-8"></span>
+                  <span class="vault-rivet vault-rivet-9"></span>
+                  <span class="vault-rivet vault-rivet-10"></span>
+                  <div class="vault-status-panel">
+                    <strong id="challenge-door-status">Door Sealed</strong>
+                    <span id="challenge-door-detail">Security panel waiting</span>
+                  </div>
+                  <div class="vault-wheel">
+                    <span class="vault-wheel-spoke vault-wheel-spoke-a"></span>
+                    <span class="vault-wheel-spoke vault-wheel-spoke-b"></span>
+                    <span class="vault-wheel-spoke vault-wheel-spoke-c"></span>
+                    <span class="vault-wheel-core"></span>
+                  </div>
+                  <span class="vault-handle"></span>
+                  <span class="vault-lock-bar vault-lock-bar-top"></span>
+                  <span class="vault-lock-bar vault-lock-bar-mid"></span>
+                  <span class="vault-lock-bar vault-lock-bar-bottom"></span>
+                  <span class="vault-hinge vault-hinge-top"></span>
+                  <span class="vault-hinge vault-hinge-mid"></span>
+                  <span class="vault-hinge vault-hinge-bottom"></span>
+                </div>
+              </div>
+            </div>
+            <p id="challenge-body" class="challenge-body"></p>
+            <div id="challenge-puzzle-area" class="challenge-puzzle-area" aria-live="polite"></div>
+            <label id="challenge-input-label" class="input-label" for="challenge-input">Type the unlock answer</label>
+            <input id="challenge-input" class="challenge-input" name="answer" autocomplete="off" spellcheck="false">
+            <p id="challenge-answer" class="challenge-answer" hidden></p>
+            <div class="challenge-actions">
+              <button id="challenge-speak" class="action action-ghost" type="button">Replay Briefing</button>
+              <button id="challenge-submit" class="action action-primary" type="submit">Unlock Door</button>
+              <button id="challenge-continue" class="action action-primary" type="button" hidden>Continue Mission</button>
+            </div>
+            <p id="challenge-feedback" class="challenge-feedback"></p>
+          </form>
+        </section>
+
+        <section id="game-over-screen" class="screen card-screen">
+          <div class="screen-card compact">
+            <p class="eyebrow">Mission Debrief</p>
+            <h2 id="game-over-title">Mission complete</h2>
+            <p id="game-over-body" class="lead"></p>
+            <div class="stat-grid">
+              <div class="stat-card">
+                <span>Distance</span>
+                <strong id="game-over-distance">0m</strong>
+              </div>
+              <div class="stat-card">
+                <span>Locks Opened</span>
+                <strong id="game-over-correct">0</strong>
+              </div>
+              <div class="stat-card">
+                <span>Lives Left</span>
+                <strong id="game-over-lives">0</strong>
+              </div>
+              <div class="stat-card">
+                <span>Ending</span>
+                <strong id="game-over-status">Clean Exit</strong>
+              </div>
+            </div>
+            <div class="cta-row">
+              <button id="retry-button" class="action action-primary" type="button">Run Again</button>
+              <button id="menu-button" class="action action-ghost" type="button">Back To Menu</button>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <div id="touch-controls" class="touch-controls hidden">
+        <button id="jump-button" type="button">Jump</button>
+        <button id="duck-button" type="button">Duck</button>
+      </div>
+    </div>
+
+    <script src="./src/game.js" defer></script>
+  </body>
+</html>
