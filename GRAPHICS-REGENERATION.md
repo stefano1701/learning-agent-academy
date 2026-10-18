@@ -1,6 +1,6 @@
 # Spy Mission Graphics Regeneration Guide
 
-This build now targets a single spy-mission world with procedural canvas art. No OpenAI API key is required for the current version.
+This build now targets four selectable movie-inspired mission worlds with procedural canvas art. No OpenAI API key is required for the current version.
 
 ## Current Goal
 
@@ -14,7 +14,7 @@ Keep the game feeling:
 
 The current direction is:
 
-- one realistic-feeling black-site corridor
+- a black-site corridor, orbital station, jungle temple and deep-sea base
 - metal panels, monitors, vault door, warning lights, and floor reflections
 - easy red laser obstacles instead of random crates and props
 - a visible vault-style lesson door during challenge screens
@@ -135,7 +135,6 @@ Keep these scene anchors:
 Avoid:
 
 - outdoor city scenes
-- multiple worlds
 - collectible clutter
 - graffiti walls
 - bright toy props
@@ -200,6 +199,10 @@ If someone needs to recreate the current style from scratch:
 - keep the run slower and less crowded than before
 - keep the obstacles easy to read
 - keep the lock screen clear and immediate
-- keep the world count at one
+- preserve the four map choices and shared obstacle timings
 - keep the player loadout to one agent only
 - do not let visual polish make the lasers harder than the gameplay
+
+## Current map and handler additions
+
+`MISSION_WORLDS`, `getSelectedWorld` and `drawMovieWorld` define the selectable genre-inspired settings. Keep the shared floor height, hitboxes, jump physics and lesson doors in every setting. Agent Mum’s bob uses a top cap and separate side locks; do not draw a solid oval beneath her jaw. The handler breakup uses `src/audio/handler-breakup.wav` so radio distortion is consistent across browsers; muting and returning to the menu stop playback.

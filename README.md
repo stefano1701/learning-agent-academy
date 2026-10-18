@@ -66,10 +66,10 @@ On touch devices there are `Jump` and `Duck` buttons.
 
 ## What’s In This Build
 
-- one spy-corridor world
+- four selectable movie-inspired maps: Black Site Corridor, Orbital Escape, Jungle Temple and Deep Sea Base
 - slower pacing and fewer, easier laser obstacles
 - higher, longer jumps and narrower floor lasers for forgiving jump timing
-- Agent Mum’s bob stays behind her face in portraits and during missions
+- Agent Mum’s bob stays beside her face, without a band of hair beneath her chin
 - a clear final approach into each lesson door, with no lasers right beside it
 - traps can still sit close to the vault door, with only a very small final gap
 - four selectable agents in suits:
@@ -100,6 +100,9 @@ On touch devices there are `Jump` and `Duck` buttons.
 - year group selectors from `Year 1` to `Year 13`, plus `Adult Mode`
 - practice mode that weights toward weaker question history
 - browser speech playback when the lock screen opens
+- a recorded, radio-distorted “We're breaking up with you.” handler transmission
+- expanded primary lesson banks, with over 100 questions each for spelling, grammar, punctuation, maths, Spanish and French in Years 1–6
+- saved question cycles that avoid repeats until the selected lesson bank is exhausted, including across mission restarts
 - red alarm failure state if a final-life lock is answered incorrectly
 - local save data in browser `localStorage`
 
@@ -155,4 +158,8 @@ http://127.0.0.1:8765/?reset=1
 
 ## Gameplay Regression Check
 
-Run `node tests/jump-clearance.cjs` to check floor-laser clearance across mission speeds, jump timings and frame rates, plus ground collisions and ducking.
+Run `node tests/jump-clearance.cjs` to check floor-laser clearance across mission speeds, jump timings and frame rates, plus ground collisions and ducking. Run `node tests/features.cjs` for lesson content, answer choices, saved question cycles, map selection and handler audio checks.
+
+Extra primary content is built in `src/question-expansion.js`. There are over 3,000 distinct prompt/answer and spelling combinations across the game; counts shown in the menu apply to the selected subject and year. Practice still weights weaker answers within each cycle.
+
+The handler clip is generated offline using the Mac system voice and deterministic radio filtering: `python3 scripts/generate_handler_audio.py`. Browser speech provides a fallback if recorded playback is unavailable.

@@ -40,10 +40,10 @@
       <main id="overlay-root" class="overlay-root">
         <section id="menu-screen" class="screen active">
           <div class="hero-copy">
-            <p class="eyebrow">Single-world spy mission runner for primary school lessons</p>
+            <p class="eyebrow">Movie-inspired spy missions for school lessons</p>
             <h1>Learning Agent Academy</h1>
             <p class="lead">
-              Slip through the laser corridor, unlock doors with lesson answers, and keep the mission alive.
+              Explore movie-inspired worlds, dodge lasers, unlock doors with lesson answers, and keep the mission alive.
               Choose the subject and year group or adult mode first, then start the infiltration run.
             </p>
 
@@ -65,6 +65,11 @@
                 <div id="year-selector" class="selector-grid year-selector"></div>
               </div>
 
+              <div class="setup-group">
+                <p class="setup-label">Choose Your Movie Map</p>
+                <div id="world-selector" class="selector-grid" aria-label="Movie map"></div>
+              </div>
+
               <p id="mission-summary" class="mission-summary">Mission loaded: Spelling · Year 3</p>
             </section>
 
@@ -77,7 +82,7 @@
           <aside class="menu-panel">
             <h2>Briefing</h2>
             <ul class="feature-list">
-              <li>One spy corridor world with slower pacing and easier laser obstacles</li>
+              <li>Four movie-inspired maps with forgiving jumps and laser obstacles</li>
               <li>Choose from Agent N, Agent M, Agent Mum, and Agent Dad before the mission starts</li>
               <li>Three lives instead of a chaser</li>
               <li>Learning doors with keypads, wires, keycards, and power panels for spelling, grammar, punctuation, maths, science, history, geography, DT, computing, Spanish, and French, with Year 1 to Year 13 plus Adult Mode</li>
@@ -213,6 +218,7 @@
       </div>
     </div>
 
+    <script src="./src/question-expansion.js" defer></script>
     <script src="./src/game.js" defer></script>
   </body>
 </html>

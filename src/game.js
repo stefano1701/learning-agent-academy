@@ -7,8 +7,8 @@
   const ADULT_YEAR_GROUP = "adult";
   const DEFAULT_CHARACTER_ID = "nathan";
   const NINJA_CAPTURE_DURATION = 1.6;
-  const GUIDE_BREAKUP_STATIC_MS = 880;
-  const GUIDE_BREAKUP_HIDE_MS = 1240;
+  const GUIDE_BREAKUP_STATIC_MS = 100;
+  const GUIDE_BREAKUP_HIDE_MS = 2800;
   const CONFINEMENT_SCENE_SECONDS = 3;
   const GAME_OVER_HOLD_SECONDS = 5;
   const CHALLENGE_DOOR_VISIBLE_METERS = 22;
@@ -1349,6 +1349,8 @@
     french: buildSubjectBanks("french", EXPANDED_RAW_LESSON_BANKS.french),
   };
 
+  window.expandAcademyLessons(LESSON_BANKS, { createLessonSet, createSpellingLesson, normalizeAnswer });
+
   const MISSION_WORLD = {
     id: "black-site",
     name: "Black Site Corridor",
@@ -1367,6 +1369,17 @@
       cyan: "#9ee9ff",
     },
   };
+
+  const MISSION_WORLDS = [
+    MISSION_WORLD,
+    { id: "orbital", name: "Orbital Escape", subtitle: "A science-fiction mission among the stars.", palette: { ...MISSION_WORLD.palette, skyTop: "#101735", skyBottom: "#030816", floor: "#0a1330", floor2: "#294b68" } },
+    { id: "temple", name: "Jungle Temple", subtitle: "An adventure-movie expedition through ancient ruins.", palette: { ...MISSION_WORLD.palette, skyTop: "#193d30", skyBottom: "#10231c", floor: "#302d21", floor2: "#786143" } },
+    { id: "submarine", name: "Deep Sea Base", subtitle: "An underwater thriller beneath the ocean.", palette: { ...MISSION_WORLD.palette, skyTop: "#063747", skyBottom: "#031a29", floor: "#0b2630", floor2: "#29565e" } },
+  ];
+
+  function getSelectedWorld() {
+    return MISSION_WORLDS.find((world) => world.id === progress.selectedWorldId) || MISSION_WORLD;
+  }
 
   const CHARACTER_PROFILES = {
     nathan: {
@@ -1506,6 +1519,7 @@
     challengeScreen: document.getElementById("challenge-screen"),
     gameOverScreen: document.getElementById("game-over-screen"),
     subjectSelector: document.getElementById("subject-selector"),
+    worldSelector: document.getElementById("world-selector"),
     yearSelector: document.getElementById("year-selector"),
     characterSelector: document.getElementById("character-selector"),
     missionSummary: document.getElementById("mission-summary"),
@@ -1599,6 +1613,8 @@
       selectedSubjectId: DEFAULT_SUBJECT_ID,
       selectedYearGroup: DEFAULT_YEAR_GROUP,
       selectedCharacterId: DEFAULT_CHARACTER_ID,
+      selectedWorldId: MISSION_WORLD.id,
+      questionCycles: {},
       challengeStats: {},
       wordStats: {},
     };
@@ -1615,6 +1631,8 @@
       const next = Object.assign({}, fallback, saved);
       next.challengeStats = next.challengeStats || {};
       next.wordStats = next.wordStats || {};
+      next.questionCycles = next.questionCycles && typeof next.questionCycles === "object" ? next.questionCycles : {};
+      next.selectedWorldId = MISSION_WORLDS.some((world) => world.id === next.selectedWorldId) ? next.selectedWorldId : MISSION_WORLD.id;
       next.selectedSubjectId = subjectMap.has(next.selectedSubjectId) ? next.selectedSubjectId : DEFAULT_SUBJECT_ID;
       next.selectedYearGroup = yearGroupMap.has(next.selectedYearGroup) ? next.selectedYearGroup : DEFAULT_YEAR_GROUP;
       next.selectedCharacterId = characterMap.has(next.selectedCharacterId) ? next.selectedCharacterId : DEFAULT_CHARACTER_ID;
@@ -1724,6 +1742,10 @@
   }
 
   function clearGuideBreakupSequence(resetPortrait = true) {
+    if (state.guideBreakupAudio) {
+      state.guideBreakupAudio.pause();
+      state.guideBreakupAudio.currentTime = 0;
+    }
     if (state.guideBreakupStaticTimer) {
       window.clearTimeout(state.guideBreakupStaticTimer);
       state.guideBreakupStaticTimer = 0;
@@ -1778,27 +1800,26 @@
     }
 
     refs.guideName.textContent = "Mission Handler";
-    refs.guideText.textContent = "We're breaking u..";
+    refs.guideText.textContent = "We're breaking up with you.";
     state.guideStatic = false;
     setGuideVisible(true);
     drawGuidePortrait();
 
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-      if (state.voiceEnabled) {
-        const utterance = new SpeechSynthesisUtterance("We're breaking u");
-        utterance.rate = 1.02;
-        utterance.pitch = 0.78;
-        utterance.volume = 0.92;
-        window.speechSynthesis.speak(utterance);
-      }
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    if (state.voiceEnabled) {
+      const audio = state.guideBreakupAudio || new Audio("./src/audio/handler-breakup.wav");
+      state.guideBreakupAudio = audio;
+      audio.volume = 0.8;
+      audio.currentTime = 0;
+      audio.play().catch(() => {
+        if (state.voiceEnabled && state.guideBreakupHideTimer) {
+          speakGuide("We're breaking up with you.");
+        }
+      });
     }
 
     state.guideBreakupStaticTimer = window.setTimeout(() => {
       state.guideBreakupStaticTimer = 0;
-      if ("speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-      }
       state.guideStatic = true;
       drawGuidePortrait();
     }, GUIDE_BREAKUP_STATIC_MS);
@@ -2036,13 +2057,16 @@
     refs.menuBestDistance.textContent = `${Math.floor(progress.bestDistance)}m`;
     refs.menuTotalRuns.textContent = progress.totalRuns;
     refs.menuCurrentMission.textContent = missionLabel;
-    refs.missionSummary.textContent = `Mission loaded: ${missionLabel}`;
+    refs.missionSummary.textContent = `Mission loaded: ${missionLabel} · ${getSelectedWorld().name} · ${getLessonPool(mission.subjectId, mission.yearGroup).length} questions`;
+    refs.worldSelector.innerHTML = MISSION_WORLDS.map((world) => `
+      <button class="action choice-button ${world.id === getSelectedWorld().id ? "selected" : ""}" type="button" data-select-world="${world.id}" aria-pressed="${world.id === getSelectedWorld().id}">${world.name}</button>
+    `).join("");
     refs.playMainButton.textContent = `Start ${getSubject(mission.subjectId).name} Mission`;
     refs.playPracticeButton.textContent = `Practice ${getSubject(mission.subjectId).name}`;
     refs.muteButton.textContent = `Voice: ${state.voiceEnabled ? "On" : "Off"}`;
     refs.muteButton.setAttribute("aria-pressed", String(state.voiceEnabled));
     if (!state.run) {
-      refs.hudLocation.textContent = MISSION_WORLD.name;
+      refs.hudLocation.textContent = getSelectedWorld().name;
       refs.hudLesson.textContent = missionLabel;
       refs.hudDistance.textContent = "0m";
       refs.hudLives.textContent = "3";
@@ -2155,7 +2179,9 @@
       if (character.hairStyle === "bob") {
         portraitCtx.fillStyle = character.hairShadow;
         portraitCtx.beginPath();
-        portraitCtx.ellipse(width * 0.5, height - 116, 44, 52, 0, 0, Math.PI * 2);
+        portraitCtx.ellipse(width * 0.5, height - 145, 42, 24, 0, 0, Math.PI * 2);
+        portraitCtx.ellipse(width * 0.5 - 39, height - 121, 6, 32, 0, 0, Math.PI * 2);
+        portraitCtx.ellipse(width * 0.5 + 39, height - 121, 6, 32, 0, 0, Math.PI * 2);
         portraitCtx.fill();
       }
 
@@ -2191,8 +2217,8 @@
         portraitCtx.fill();
       } else if (character.hairStyle === "bob") {
         portraitCtx.beginPath();
-        portraitCtx.ellipse(width * 0.5 - 38, height - 112, 6, 28, -0.1, 0, Math.PI * 2);
-        portraitCtx.ellipse(width * 0.5 + 38, height - 112, 6, 28, 0.1, 0, Math.PI * 2);
+        portraitCtx.ellipse(width * 0.5 - 38, height - 122, 6, 26, -0.1, 0, Math.PI * 2);
+        portraitCtx.ellipse(width * 0.5 + 38, height - 122, 6, 26, 0.1, 0, Math.PI * 2);
         portraitCtx.fill();
       } else if (character.hairStyle === "bald") {
         portraitCtx.fillStyle = "rgba(0,0,0,0.08)";
@@ -2404,9 +2430,16 @@
 
   function chooseChallenge(run) {
     const pool = getLessonPool(run.subjectId, run.yearGroup);
-    const recentKeys = new Set(run.recentChallengeKeys || []);
-    const sourcePool = pool.filter((challenge) => !recentKeys.has(getChallengeKey(challenge)));
-    const activePool = sourcePool.length ? sourcePool : pool;
+    const cycleKey = `${run.subjectId}:${run.yearGroup}`;
+    const seen = new Set(Array.isArray(progress.questionCycles[cycleKey]) ? progress.questionCycles[cycleKey] : []);
+    let activePool = pool.filter((challenge) => !seen.has(getChallengeKey(challenge)));
+    if (!activePool.length) {
+      const previousKey = [...seen].at(-1);
+      seen.clear();
+      // Avoid repeating the last question at the boundary between cycles.
+      const lastKey = run.recentChallengeKeys?.at(-1) || previousKey;
+      activePool = pool.filter((challenge) => pool.length === 1 || getChallengeKey(challenge) !== lastKey);
+    }
     const weighted = [];
 
     for (const challenge of activePool) {
@@ -2422,7 +2455,11 @@
 
     const selected = weighted.length ? choice(weighted) : activePool[0];
     if (selected) {
-      run.recentChallengeKeys = [...(run.recentChallengeKeys || []), getChallengeKey(selected)].slice(-4);
+      const key = getChallengeKey(selected);
+      run.recentChallengeKeys = [...(run.recentChallengeKeys || []), key].slice(-4);
+      seen.add(key);
+      progress.questionCycles[cycleKey] = [...seen];
+      saveProgress();
     }
     return selected;
   }
@@ -2754,7 +2791,7 @@
 
   function createRun(mode, mission) {
     return {
-      world: MISSION_WORLD,
+      world: getSelectedWorld(),
       mode,
       subjectId: mission.subjectId,
       yearGroup: mission.yearGroup,
@@ -3290,6 +3327,14 @@
       return;
     }
 
+    if (button.dataset.selectWorld) {
+      progress.selectedWorldId = button.dataset.selectWorld;
+      saveProgress();
+      refreshAllUI();
+      showToast(getSelectedWorld().subtitle);
+      return;
+    }
+
     if (button.dataset.selectSubject) {
       progress.selectedSubjectId = button.dataset.selectSubject;
       refreshAllUI();
@@ -3502,7 +3547,106 @@
     ctx.fillRect(x + width - 24, y + 14, 8, height - 28);
   }
 
+  function drawMovieWorld(world, timeSeconds, distanceMeters) {
+    const width = state.viewWidth, height = state.viewHeight, groundY = getGroundY();
+    const scroll = distanceMeters * 10;
+    const sky = ctx.createLinearGradient(0, 0, 0, groundY);
+    sky.addColorStop(0, world.palette.skyTop);
+    sky.addColorStop(1, world.palette.skyBottom);
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, width, height);
+
+    if (world.id === "orbital") {
+      // Tall observation windows, a planet, stars and structural station ribs.
+      for (let i = 0; i < 90; i++) {
+        const x = ((i * 137.3 - scroll * 0.025) % width + width) % width;
+        const y = 70 + (i * 71.7) % Math.max(100, groundY - 150);
+        ctx.fillStyle = `rgba(220,235,255,${0.35 + Math.sin(timeSeconds + i) * 0.2})`;
+        ctx.fillRect(x, y, i % 5 === 0 ? 3 : 1.5, i % 5 === 0 ? 3 : 1.5);
+      }
+      const planet = ctx.createRadialGradient(width * 0.7, groundY * 0.32, 4, width * 0.74, groundY * 0.4, 110);
+      planet.addColorStop(0, "#8bd3dc"); planet.addColorStop(0.7, "#2b789e"); planet.addColorStop(1, "#102c55");
+      ctx.fillStyle = planet;
+      ctx.beginPath(); ctx.arc(width * 0.74, groundY * 0.4, 110, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = "rgba(168,220,255,0.3)"; ctx.lineWidth = 9;
+      ctx.beginPath(); ctx.ellipse(width * 0.74, groundY * 0.4, 160, 30, -0.3, 0, Math.PI * 2); ctx.stroke();
+      for (let i = -1; i < Math.ceil(width / 260) + 2; i++) {
+        const x = i * 260 - (scroll * 0.25 % 260);
+        fillStrokeRoundedRect(x, 60, 22, groundY - 65, 8, "#26334e", "#667c9a", 2);
+        fillStrokeRoundedRect(x + 32, groundY - 130, 84, 60, 8, "#192c43", "#68c9e3", 2);
+        drawMonitor(x + 41, groundY - 122, 66, 40, "#68dce9");
+      }
+      ctx.fillStyle = "#31435f"; ctx.fillRect(0, 58, width, 18);
+    } else if (world.id === "temple") {
+      // Distant jungle canopy, carved stone pillars, vines and torchlight.
+      for (let i = 0; i < 16; i++) {
+        const x = i * 120 - (scroll * 0.08 % 120);
+        ctx.fillStyle = i % 2 ? "#183e2e" : "#22503b";
+        ctx.beginPath(); ctx.ellipse(x, 100 + i % 3 * 45, 130, 140, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#233c28"; ctx.fillRect(x - 10, 140, 20, groundY - 140);
+      }
+      for (let i = -1; i < Math.ceil(width / 240) + 2; i++) {
+        const x = i * 240 - (scroll * 0.28 % 240);
+        fillStrokeRoundedRect(x, 100, 72, groundY - 115, 4, "#6e6247", "#a68b5a", 3);
+        fillStrokeRoundedRect(x - 12, 85, 96, 28, 4, "#93815b", "#b19c6b", 2);
+        for (let row = 0; row < 6; row++) {
+          ctx.strokeStyle = "#443e2f"; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.moveTo(x + 4, 140 + row * 60); ctx.lineTo(x + 68, 140 + row * 60); ctx.stroke();
+          ctx.fillStyle = "#c2ab6b"; ctx.fillRect(x + 26, 156 + row * 60, 18, 6);
+        }
+        ctx.strokeStyle = "#527545"; ctx.lineWidth = 7;
+        ctx.beginPath(); ctx.moveTo(x + 15, 0); ctx.bezierCurveTo(x + 50, 100, x - 20, 170, x + 26, 255); ctx.stroke();
+        ctx.fillStyle = "#72a356";
+        for (let leaf = 0; leaf < 5; leaf++) {
+          ctx.beginPath(); ctx.ellipse(x + 22 + leaf % 2 * 12, 45 + leaf * 35, 14, 5, leaf % 2 ? 0.5 : -0.5, 0, Math.PI * 2); ctx.fill();
+        }
+        fillStrokeRoundedRect(x + 94, groundY - 145, 10, 65, 3, "#563723", null, 0);
+        const flicker = Math.sin(timeSeconds * 9 + i) * 4;
+        ctx.fillStyle = "#e99e42"; ctx.beginPath(); ctx.ellipse(x + 99, groundY - 157, 12, 24 + flicker, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#ffe6a2"; ctx.beginPath(); ctx.ellipse(x + 99, groundY - 151, 5, 12, 0, 0, Math.PI * 2); ctx.fill();
+      }
+    } else {
+      // Steel pressure hull, round portholes, fish silhouettes and rising bubbles.
+      ctx.fillStyle = "#20414c"; ctx.fillRect(0, 70, width, groundY - 80);
+      for (let i = -1; i < Math.ceil(width / 240) + 2; i++) {
+        const x = i * 240 - (scroll * 0.22 % 240) + 100;
+        ctx.fillStyle = "#061c2b"; ctx.beginPath(); ctx.arc(x, groundY * 0.48, 76, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = "#728b8c"; ctx.lineWidth = 12; ctx.stroke();
+        ctx.strokeStyle = "#102c34"; ctx.lineWidth = 3; ctx.stroke();
+        ctx.save(); ctx.beginPath(); ctx.arc(x, groundY * 0.48, 68, 0, Math.PI * 2); ctx.clip();
+        const sea = ctx.createLinearGradient(0, groundY * 0.48 - 70, 0, groundY * 0.48 + 70);
+        sea.addColorStop(0, "#136579"); sea.addColorStop(1, "#052c46"); ctx.fillStyle = sea; ctx.fillRect(x - 70, groundY * 0.48 - 70, 140, 140);
+        const fishX = x + Math.sin(timeSeconds * 0.55 + i) * 45;
+        const fishY = groundY * 0.48 + 18;
+        ctx.fillStyle = "#052333"; ctx.beginPath(); ctx.ellipse(fishX, fishY, 19, 8, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(fishX - 15, fishY); ctx.lineTo(fishX - 29, fishY - 12); ctx.lineTo(fishX - 29, fishY + 12); ctx.closePath(); ctx.fill();
+        for (let bubble = 0; bubble < 6; bubble++) {
+          ctx.strokeStyle = "rgba(155,224,230,0.5)"; ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.arc(x - 40 + bubble * 15, groundY * 0.48 + 65 - ((timeSeconds * 24 + bubble * 29) % 130), 3 + bubble % 3, 0, Math.PI * 2); ctx.stroke();
+        }
+        ctx.restore();
+        fillStrokeRoundedRect(x - 85, groundY - 94, 170, 12, 6, "#4d7072", "#8ba9a6", 2);
+        ctx.fillStyle = "#142d36"; ctx.fillRect(x + 112, 75, 8, groundY - 85);
+      }
+      fillStrokeRoundedRect(0, 77, width, 14, 6, "#42696d", "#8ba9a6", 2);
+    }
+    const floor = ctx.createLinearGradient(0, groundY - 22, 0, height);
+    floor.addColorStop(0, world.palette.floor2); floor.addColorStop(1, world.palette.floor);
+    ctx.fillStyle = floor; ctx.fillRect(0, groundY - 22, width, height - groundY + 22);
+    ctx.fillStyle = "rgba(245,214,133,0.6)"; ctx.fillRect(0, groundY - 10, width, 3);
+    for (let i = -1; i < Math.ceil(width / 90) + 2; i++) {
+      const x = i * 90 - (scroll % 90);
+      ctx.strokeStyle = "rgba(255,255,255,0.09)"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(x, groundY); ctx.lineTo(x - 70, height); ctx.stroke();
+    }
+  }
+
   function drawBackground(timeSeconds, distanceMeters) {
+    const world = state.run?.world || getSelectedWorld();
+    if (world.id !== "black-site") {
+      drawMovieWorld(world, timeSeconds, distanceMeters);
+      return;
+    }
     const width = state.viewWidth;
     const height = state.viewHeight;
     const groundY = getGroundY();
@@ -3786,7 +3930,9 @@
     if (hairStyle === "bob") {
       ctx.fillStyle = agent.hairShadow;
       ctx.beginPath();
-      ctx.ellipse(0, headY + 3, 29, 36, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, headY - 14, 28, 20, 0, 0, Math.PI * 2);
+      ctx.ellipse(-26, headY, 4, 22, 0, 0, Math.PI * 2);
+      ctx.ellipse(26, headY, 4, 22, 0, 0, Math.PI * 2);
       ctx.fill();
     }
 
@@ -3838,8 +3984,8 @@
       ctx.fill();
     } else if (hairStyle === "bob") {
       ctx.beginPath();
-      ctx.ellipse(-26, headY + 10, 3.5, 20, -0.06, 0, Math.PI * 2);
-      ctx.ellipse(26, headY + 10, 3.5, 20, 0.06, 0, Math.PI * 2);
+      ctx.ellipse(-26, headY + 1, 3.5, 20, -0.06, 0, Math.PI * 2);
+      ctx.ellipse(26, headY + 1, 3.5, 20, 0.06, 0, Math.PI * 2);
       ctx.fill();
     } else if (hairStyle === "bald") {
       ctx.fillStyle = "rgba(0,0,0,0.08)";
@@ -4586,6 +4732,7 @@
     refs.muteButton.addEventListener("click", () => {
       state.voiceEnabled = !state.voiceEnabled;
       updateStaticUI();
+      if (!state.voiceEnabled && state.guideBreakupAudio) state.guideBreakupAudio.pause();
       if (!state.voiceEnabled && "speechSynthesis" in window) {
         window.speechSynthesis.cancel();
       }
@@ -4615,6 +4762,7 @@
       voice: params.get("voice"),
       practice: params.get("practice") === "1",
       character: params.get("character"),
+      world: params.get("world"),
     };
 
     if (options.reset) {
@@ -4632,6 +4780,10 @@
 
     if (yearGroupMap.has(options.year)) {
       progress.selectedYearGroup = options.year;
+    }
+
+    if (MISSION_WORLDS.some((world) => world.id === options.world)) {
+      progress.selectedWorldId = options.world;
     }
 
     if (characterMap.has(options.character)) {

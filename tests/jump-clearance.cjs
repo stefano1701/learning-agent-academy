@@ -11,6 +11,7 @@ const sandbox = {
 };
 let source = fs.readFileSync(path.join(__dirname, '../src/game.js'), 'utf8');
 source = source.replace('  init();\n})();', '  globalThis.gameTest = { state, createRun, updateRun };\n})();');
+vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../src/question-expansion.js'), 'utf8'), sandbox);
 vm.runInNewContext(source, sandbox);
 const { state, createRun, updateRun } = sandbox.gameTest;
 let scenarios = 0;
