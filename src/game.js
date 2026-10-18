@@ -2152,6 +2152,13 @@
       portraitCtx.fillStyle = character.skinShadow;
       portraitCtx.fillRect(width * 0.47, height - 102, width * 0.06, 16);
 
+      if (character.hairStyle === "bob") {
+        portraitCtx.fillStyle = character.hairShadow;
+        portraitCtx.beginPath();
+        portraitCtx.ellipse(width * 0.5, height - 116, 44, 52, 0, 0, Math.PI * 2);
+        portraitCtx.fill();
+      }
+
       portraitCtx.fillStyle = character.skin;
       portraitCtx.beginPath();
       portraitCtx.ellipse(width * 0.5, height - 120, 36, 44, 0, 0, Math.PI * 2);
@@ -2184,9 +2191,8 @@
         portraitCtx.fill();
       } else if (character.hairStyle === "bob") {
         portraitCtx.beginPath();
-        portraitCtx.ellipse(width * 0.39, height - 112, 12, 28, -0.1, 0, Math.PI * 2);
-        portraitCtx.ellipse(width * 0.61, height - 112, 12, 28, 0.1, 0, Math.PI * 2);
-        portraitCtx.ellipse(width * 0.5, height - 135, 33, 18, 0, 0, Math.PI * 2);
+        portraitCtx.ellipse(width * 0.5 - 38, height - 112, 6, 28, -0.1, 0, Math.PI * 2);
+        portraitCtx.ellipse(width * 0.5 + 38, height - 112, 6, 28, 0.1, 0, Math.PI * 2);
         portraitCtx.fill();
       } else if (character.hairStyle === "bald") {
         portraitCtx.fillStyle = "rgba(0,0,0,0.08)";
@@ -2250,20 +2256,17 @@
         portraitCtx.stroke();
       } else if (character.hairStyle === "bob") {
         portraitCtx.beginPath();
-        portraitCtx.moveTo(width * 0.31, height - 128);
-        portraitCtx.quadraticCurveTo(width * 0.37, height - 158, width * 0.56, height - 149);
-        portraitCtx.quadraticCurveTo(width * 0.68, height - 144, width * 0.68, height - 121);
-        portraitCtx.quadraticCurveTo(width * 0.67, height - 87, width * 0.61, height - 64);
-        portraitCtx.quadraticCurveTo(width * 0.55, height - 64, width * 0.51, height - 60);
-        portraitCtx.quadraticCurveTo(width * 0.5, height - 84, width * 0.5, height - 104);
-        portraitCtx.quadraticCurveTo(width * 0.5, height - 84, width * 0.49, height - 60);
-        portraitCtx.quadraticCurveTo(width * 0.45, height - 64, width * 0.39, height - 64);
-        portraitCtx.quadraticCurveTo(width * 0.33, height - 87, width * 0.31, height - 128);
+        portraitCtx.moveTo(width * 0.5 - 40, height - 132);
+        portraitCtx.quadraticCurveTo(width * 0.5 - 36, height - 172, width * 0.5, height - 166);
+        portraitCtx.quadraticCurveTo(width * 0.5 + 36, height - 172, width * 0.5 + 40, height - 132);
+        portraitCtx.lineTo(width * 0.5 + 32, height - 138);
+        portraitCtx.quadraticCurveTo(width * 0.5 + 15, height - 140, width * 0.5, height - 148);
+        portraitCtx.quadraticCurveTo(width * 0.5 - 15, height - 140, width * 0.5 - 32, height - 138);
         portraitCtx.closePath();
         portraitCtx.fill();
         portraitCtx.beginPath();
-        portraitCtx.moveTo(width * 0.5, height - 142);
-        portraitCtx.quadraticCurveTo(width * 0.55, height - 136, width * 0.59, height - 122);
+        portraitCtx.moveTo(width * 0.5, height - 162);
+        portraitCtx.lineTo(width * 0.5, height - 150);
         portraitCtx.strokeStyle = "rgba(255,255,255,0.18)";
         portraitCtx.lineWidth = 1.7;
         portraitCtx.stroke();
@@ -2733,7 +2736,7 @@
     const lowLaser = {
       type: "floor-laser",
       x,
-      width: rand(112, 132),
+      width: rand(80, 96),
       hit: false,
       phase: rand(0, Math.PI * 2),
     };
@@ -2861,7 +2864,7 @@
     }
 
     if (state.jumpQueued && onGround) {
-      player.vy = 820;
+      player.vy = 940;
       state.jumpQueued = false;
     } else {
       state.jumpQueued = false;
@@ -2869,7 +2872,7 @@
 
     player.duckBlend = lerp(player.duckBlend, effectiveDuck && onGround ? 1 : 0, 0.18);
     player.y += player.vy * dt;
-    player.vy -= 2140 * dt;
+    player.vy -= 1900 * dt;
 
     if (player.y < 0) {
       player.y = 0;
@@ -3780,6 +3783,13 @@
     ctx.ellipse(18, headY + 5, 5.5, 9, 0.1, 0, Math.PI * 2);
     ctx.fill();
 
+    if (hairStyle === "bob") {
+      ctx.fillStyle = agent.hairShadow;
+      ctx.beginPath();
+      ctx.ellipse(0, headY + 3, 29, 36, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
     const faceGradient = ctx.createLinearGradient(0, headY - 28, 0, headY + 36);
     faceGradient.addColorStop(0, shadeHex(agent.skin, 18));
     faceGradient.addColorStop(1, shadeHex(agent.skin, -8));
@@ -3828,9 +3838,8 @@
       ctx.fill();
     } else if (hairStyle === "bob") {
       ctx.beginPath();
-      ctx.ellipse(-16, headY + 10, 8.6, 20, -0.06, 0, Math.PI * 2);
-      ctx.ellipse(16, headY + 10, 8.6, 20, 0.06, 0, Math.PI * 2);
-      ctx.ellipse(0, headY - 12, 20, 9.8, 0, 0, Math.PI * 2);
+      ctx.ellipse(-26, headY + 10, 3.5, 20, -0.06, 0, Math.PI * 2);
+      ctx.ellipse(26, headY + 10, 3.5, 20, 0.06, 0, Math.PI * 2);
       ctx.fill();
     } else if (hairStyle === "bald") {
       ctx.fillStyle = "rgba(0,0,0,0.08)";
@@ -3908,22 +3917,19 @@
       ctx.stroke();
     } else if (hairStyle === "bob") {
       ctx.beginPath();
-      ctx.moveTo(-19, headY - 14);
-      ctx.quadraticCurveTo(-10, headY - 32, 9, headY - 28);
-      ctx.quadraticCurveTo(19, headY - 27, 22, headY - 14);
-      ctx.quadraticCurveTo(23, headY + 7, 18, headY + 24);
-      ctx.quadraticCurveTo(13, headY + 31, 8, headY + 34);
-      ctx.quadraticCurveTo(4, headY + 21, 0, headY + 12);
-      ctx.quadraticCurveTo(-4, headY + 21, -8, headY + 34);
-      ctx.quadraticCurveTo(-13, headY + 31, -18, headY + 24);
-      ctx.quadraticCurveTo(-23, headY + 7, -19, headY - 14);
+      ctx.moveTo(-27, headY - 12);
+      ctx.quadraticCurveTo(-26, headY - 35, 0, headY - 32);
+      ctx.quadraticCurveTo(26, headY - 35, 27, headY - 12);
+      ctx.lineTo(21, headY - 16);
+      ctx.quadraticCurveTo(10, headY - 17, 0, headY - 23);
+      ctx.quadraticCurveTo(-10, headY - 17, -21, headY - 16);
       ctx.closePath();
       ctx.fill();
       ctx.strokeStyle = "rgba(255,255,255,0.16)";
       ctx.lineWidth = 1.25;
       ctx.beginPath();
-      ctx.moveTo(1, headY - 20);
-      ctx.quadraticCurveTo(7, headY - 14, 10, headY - 4);
+      ctx.moveTo(0, headY - 30);
+      ctx.lineTo(0, headY - 24);
       ctx.stroke();
     } else if (hairStyle === "bald") {
       ctx.strokeStyle = "rgba(255,255,255,0.2)";

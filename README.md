@@ -68,6 +68,8 @@ On touch devices there are `Jump` and `Duck` buttons.
 
 - one spy-corridor world
 - slower pacing and fewer, easier laser obstacles
+- higher, longer jumps and narrower floor lasers for forgiving jump timing
+- Agent Mum’s bob stays behind her face in portraits and during missions
 - a clear final approach into each lesson door, with no lasers right beside it
 - traps can still sit close to the vault door, with only a very small final gap
 - four selectable agents in suits:
@@ -150,3 +152,7 @@ http://127.0.0.1:8765/?reset=1
 - The visuals are procedural canvas art, not imported sprite sheets.
 - The current look is faux-3D / 2.5D spy art, not mesh-based 3D.
 - If speech playback is unavailable in a browser, the lesson lock still works with typed answers.
+
+## Gameplay Regression Check
+
+Run `node tests/jump-clearance.cjs` to check floor-laser clearance across mission speeds, jump timings and frame rates, plus ground collisions and ducking.
